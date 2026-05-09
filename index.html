@@ -1,0 +1,1510 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Simplit - AI writing assistant for Mac</title>
+  <meta name="description" content="Simplit is a slim macOS AI island. Select text and answer, explain, rewrite, shorten, or simplify it without leaving the app you are in.">
+  <meta property="og:title" content="Simplit - AI writing assistant for Mac">
+  <meta property="og:description" content="Select text. Simplit answers. A native Mac AI assistant for students, writers, and builders.">
+  <meta property="og:type" content="website">
+  <meta name="twitter:card" content="summary_large_image">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #07090b;
+      --panel: rgba(255,255,255,.055);
+      --panel-strong: rgba(255,255,255,.085);
+      --line: rgba(255,255,255,.12);
+      --text: #f4f7f7;
+      --muted: #9aa7a7;
+      --soft: #d9e4e1;
+      --mint: #74f6c3;
+      --mint-2: #55dccf;
+      --blue: #8fb6ff;
+      --coral: #ff9d86;
+      --ink: #071412;
+      --shadow: 0 18px 70px rgba(0,0,0,.44);
+      --glow: 0 24px 80px rgba(116,246,195,.18);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background:
+        radial-gradient(circle at 18% 4%, rgba(116,246,195,.18), transparent 28rem),
+        radial-gradient(circle at 82% 7%, rgba(143,182,255,.14), transparent 30rem),
+        linear-gradient(180deg, #091012 0%, var(--bg) 46%, #08090d 100%);
+      color: var(--text);
+      font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+      text-rendering: optimizeLegibility;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    button,
+    a {
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .page-shell {
+      position: relative;
+      overflow: hidden;
+    }
+
+    .gridwash {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background-image:
+        linear-gradient(rgba(255,255,255,.035) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,.035) 1px, transparent 1px);
+      background-size: 56px 56px;
+      mask-image: linear-gradient(to bottom, rgba(0,0,0,.85), transparent 72%);
+      opacity: .7;
+    }
+
+    .container {
+      width: min(1160px, calc(100% - 40px));
+      margin: 0 auto;
+    }
+
+    .nav-wrap {
+      position: fixed;
+      z-index: 50;
+      top: 16px;
+      left: 0;
+      right: 0;
+      padding: 0 16px;
+    }
+
+    .nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      width: min(1020px, 100%);
+      margin: 0 auto;
+      padding: 9px 10px 9px 16px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: rgba(9, 14, 16, .72);
+      box-shadow: 0 14px 44px rgba(0,0,0,.28);
+      backdrop-filter: blur(22px) saturate(145%);
+      -webkit-backdrop-filter: blur(22px) saturate(145%);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: max-content;
+      font-weight: 750;
+      letter-spacing: 0;
+    }
+
+    .logo {
+      display: grid;
+      place-items: center;
+      width: 29px;
+      height: 29px;
+      color: var(--ink);
+      border-radius: 8px;
+      background: linear-gradient(135deg, var(--mint), var(--mint-2));
+      box-shadow: 0 0 26px rgba(116,246,195,.36);
+    }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 2px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .nav-links a {
+      border-radius: 999px;
+      padding: 8px 12px;
+      transition: background .18s ease, color .18s ease, transform .18s ease;
+    }
+
+    .nav-links a:hover {
+      color: var(--text);
+      background: rgba(255,255,255,.07);
+      transform: translateY(-1px);
+    }
+
+    .button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 9px;
+      min-height: 42px;
+      padding: 0 18px;
+      border: 1px solid transparent;
+      border-radius: 999px;
+      font-size: 14px;
+      font-weight: 700;
+      white-space: nowrap;
+      transition: transform .18s ease, background .18s ease, border-color .18s ease, box-shadow .18s ease;
+    }
+
+    .button:hover {
+      transform: translateY(-2px);
+    }
+
+    .button.primary {
+      color: var(--ink);
+      background: linear-gradient(135deg, var(--mint), var(--mint-2));
+      box-shadow: 0 16px 42px rgba(116,246,195,.22);
+    }
+
+    .button.primary:hover {
+      box-shadow: 0 20px 54px rgba(116,246,195,.34);
+    }
+
+    .button.secondary {
+      color: var(--text);
+      border-color: var(--line);
+      background: rgba(255,255,255,.055);
+    }
+
+    .button.secondary:hover {
+      background: rgba(255,255,255,.085);
+      border-color: rgba(255,255,255,.22);
+    }
+
+    .hero {
+      position: relative;
+      padding: 148px 0 76px;
+    }
+
+    .hero-grid {
+      display: grid;
+      grid-template-columns: minmax(0, .92fr) minmax(420px, 1.08fr);
+      align-items: center;
+      gap: 58px;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 9px;
+      width: fit-content;
+      padding: 7px 11px;
+      color: var(--soft);
+      border: 1px solid rgba(255,255,255,.12);
+      border-radius: 999px;
+      background: rgba(255,255,255,.055);
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .ping {
+      position: relative;
+      width: 8px;
+      height: 8px;
+      border-radius: 999px;
+      background: var(--mint);
+      box-shadow: 0 0 0 6px rgba(116,246,195,.11);
+    }
+
+    h1,
+    h2,
+    h3,
+    p {
+      margin: 0;
+    }
+
+    h1 {
+      max-width: 640px;
+      margin-top: 22px;
+      font-size: clamp(48px, 6vw, 82px);
+      line-height: .95;
+      font-weight: 820;
+      letter-spacing: 0;
+    }
+
+    .gradient-text {
+      background: linear-gradient(180deg, #fff 0%, #cfe2df 76%, #91aaa6 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+
+    .accent-text {
+      color: var(--mint);
+      text-shadow: 0 0 36px rgba(116,246,195,.25);
+    }
+
+    .hero-copy {
+      max-width: 580px;
+      margin-top: 24px;
+      color: var(--muted);
+      font-size: 18px;
+    }
+
+    .hero-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 34px;
+    }
+
+    .nav-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .microproof {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 24px;
+      color: #b9c6c5;
+      font-size: 13px;
+    }
+
+    .microproof span {
+      padding: 7px 10px;
+      border: 1px solid rgba(255,255,255,.1);
+      border-radius: 999px;
+      background: rgba(255,255,255,.045);
+    }
+
+    .mac-stage {
+      position: relative;
+      min-height: 560px;
+      perspective: 1200px;
+    }
+
+    .mac-light {
+      position: absolute;
+      inset: 58px 24px auto;
+      height: 360px;
+      border-radius: 999px;
+      background:
+        radial-gradient(circle at 30% 30%, rgba(116,246,195,.28), transparent 40%),
+        radial-gradient(circle at 72% 24%, rgba(143,182,255,.22), transparent 38%),
+        radial-gradient(circle at 50% 75%, rgba(255,157,134,.13), transparent 42%);
+      filter: blur(44px);
+      opacity: .9;
+      animation: breathe 5s ease-in-out infinite;
+    }
+
+    .mac {
+      position: relative;
+      width: min(100%, 650px);
+      margin: 0 auto;
+      transform: rotateX(5deg) rotateY(-6deg);
+      transform-origin: center;
+      animation: floatMac 6s ease-in-out infinite;
+    }
+
+    .screen {
+      position: relative;
+      overflow: hidden;
+      min-height: 412px;
+      border: 1px solid rgba(255,255,255,.16);
+      border-radius: 10px;
+      background:
+        linear-gradient(135deg, rgba(255,255,255,.08), transparent 30%),
+        linear-gradient(180deg, #151b1f, #0b1013);
+      box-shadow: var(--shadow), var(--glow);
+    }
+
+    .screen::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        linear-gradient(90deg, transparent, rgba(255,255,255,.06), transparent),
+        radial-gradient(circle at 20% 0%, rgba(116,246,195,.1), transparent 34%);
+      pointer-events: none;
+    }
+
+    .browser-top {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      height: 42px;
+      padding: 0 14px;
+      border-bottom: 1px solid rgba(255,255,255,.08);
+      background: rgba(255,255,255,.055);
+    }
+
+    .traffic {
+      display: flex;
+      gap: 6px;
+    }
+
+    .traffic span {
+      width: 10px;
+      height: 10px;
+      border-radius: 999px;
+    }
+
+    .traffic span:nth-child(1) { background: #ff5f57; }
+    .traffic span:nth-child(2) { background: #febc2e; }
+    .traffic span:nth-child(3) { background: #28c840; }
+
+    .urlbar {
+      flex: 1;
+      min-width: 0;
+      height: 24px;
+      border: 1px solid rgba(255,255,255,.08);
+      border-radius: 999px;
+      background: rgba(0,0,0,.22);
+      color: #7f8d8c;
+      font-family: "JetBrains Mono", monospace;
+      font-size: 11px;
+      line-height: 22px;
+      padding: 0 12px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .document {
+      padding: 34px;
+    }
+
+    .doc-label {
+      color: var(--mint);
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+    }
+
+    .doc-title {
+      max-width: 470px;
+      margin-top: 12px;
+      color: #f7fbfb;
+      font-size: 30px;
+      line-height: 1.1;
+      font-weight: 800;
+    }
+
+    .doc-text {
+      max-width: 520px;
+      margin-top: 14px;
+      color: #aab8b7;
+      font-size: 15px;
+    }
+
+    .selection {
+      margin-top: 22px;
+      padding: 4px 7px;
+      border-radius: 6px;
+      color: #eaf7f4;
+      background: linear-gradient(90deg, rgba(116,246,195,.24), rgba(143,182,255,.18));
+      box-decoration-break: clone;
+      -webkit-box-decoration-break: clone;
+    }
+
+    .simplit-island {
+      position: absolute;
+      left: 50%;
+      top: 84px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      width: min(94%, 560px);
+      padding: 8px;
+      border: 1px solid rgba(255,255,255,.16);
+      border-radius: 999px;
+      background: rgba(10, 15, 17, .78);
+      box-shadow: 0 18px 54px rgba(0,0,0,.46), 0 0 48px rgba(116,246,195,.16);
+      transform: translateX(-50%);
+      backdrop-filter: blur(24px) saturate(155%);
+      -webkit-backdrop-filter: blur(24px) saturate(155%);
+      animation: islandIn .85s .35s cubic-bezier(.2,.9,.2,1) both;
+    }
+
+    .island-brand {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      min-width: max-content;
+      padding: 7px 10px;
+      border-radius: 999px;
+      background: rgba(255,255,255,.07);
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .island-tools {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      overflow: hidden;
+    }
+
+    .tool-pill {
+      min-width: max-content;
+      padding: 7px 10px;
+      border-radius: 999px;
+      color: #c4cfcd;
+      font-size: 12px;
+      font-weight: 700;
+      transition: color .18s ease, background .18s ease;
+    }
+
+    .tool-pill.active {
+      color: var(--ink);
+      background: linear-gradient(135deg, var(--mint), var(--mint-2));
+    }
+
+    .tool-pill:not(.active):hover {
+      color: var(--text);
+      background: rgba(255,255,255,.075);
+    }
+
+    .answer-card {
+      position: relative;
+      margin-top: 78px;
+      width: min(100%, 520px);
+      padding: 18px;
+      border: 1px solid rgba(255,255,255,.12);
+      border-radius: 8px;
+      background: rgba(255,255,255,.06);
+    }
+
+    .answer-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      color: var(--mint);
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .answer-body {
+      min-height: 86px;
+      margin-top: 12px;
+      color: #e8f2ef;
+      font-size: 15px;
+    }
+
+    .caret {
+      display: inline-block;
+      width: 2px;
+      height: 1em;
+      margin-left: 3px;
+      vertical-align: -2px;
+      background: var(--mint);
+      animation: blink 1s infinite;
+    }
+
+    .mac-base {
+      width: 80%;
+      height: 18px;
+      margin: 0 auto;
+      border-radius: 0 0 30px 30px;
+      background: linear-gradient(180deg, #aeb8ba, #697273);
+      box-shadow: 0 24px 48px rgba(0,0,0,.36);
+    }
+
+    .section {
+      position: relative;
+      padding: 86px 0;
+    }
+
+    .section-head {
+      width: min(680px, 100%);
+      margin: 0 auto 38px;
+      text-align: center;
+    }
+
+    .kicker {
+      color: var(--mint);
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: .15em;
+      text-transform: uppercase;
+    }
+
+    h2 {
+      margin-top: 10px;
+      font-size: clamp(34px, 4.2vw, 54px);
+      line-height: 1.03;
+      font-weight: 820;
+      letter-spacing: 0;
+    }
+
+    .section-copy {
+      margin-top: 14px;
+      color: var(--muted);
+      font-size: 17px;
+    }
+
+    .workflow {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+    }
+
+    .step {
+      position: relative;
+      min-height: 220px;
+      padding: 22px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(255,255,255,.045);
+      transition: transform .2s ease, background .2s ease, border-color .2s ease;
+    }
+
+    .step:hover,
+    .feature:hover,
+    .price:hover {
+      transform: translateY(-4px);
+      background: rgba(255,255,255,.068);
+      border-color: rgba(255,255,255,.22);
+    }
+
+    .number {
+      position: absolute;
+      top: 18px;
+      right: 18px;
+      color: rgba(255,255,255,.24);
+      font-family: "JetBrains Mono", monospace;
+      font-size: 12px;
+    }
+
+    .iconbox {
+      display: grid;
+      place-items: center;
+      width: 42px;
+      height: 42px;
+      margin-bottom: 18px;
+      border: 1px solid rgba(116,246,195,.32);
+      border-radius: 8px;
+      color: var(--mint);
+      background: rgba(116,246,195,.09);
+    }
+
+    .step h3,
+    .feature h3,
+    .price h3 {
+      font-size: 18px;
+      line-height: 1.2;
+    }
+
+    .step p,
+    .feature p,
+    .price p,
+    .faq p {
+      margin-top: 9px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .feature-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1px;
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--line);
+    }
+
+    .feature {
+      min-height: 204px;
+      padding: 24px;
+      background: rgba(7,9,11,.92);
+      transition: transform .2s ease, background .2s ease, border-color .2s ease;
+    }
+
+    .compare-band {
+      display: grid;
+      grid-template-columns: .9fr 1.1fr;
+      gap: 24px;
+      align-items: stretch;
+      padding: 32px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background:
+        linear-gradient(135deg, rgba(116,246,195,.08), transparent 32%),
+        rgba(255,255,255,.045);
+    }
+
+    .compare-copy {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    .compare-copy h2 {
+      max-width: 450px;
+    }
+
+    .mini-list {
+      display: grid;
+      gap: 10px;
+    }
+
+    .mini-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-height: 62px;
+      padding: 14px;
+      border: 1px solid rgba(255,255,255,.1);
+      border-radius: 8px;
+      background: rgba(0,0,0,.22);
+    }
+
+    .mini-row strong {
+      display: block;
+      font-size: 14px;
+    }
+
+    .mini-row span {
+      display: block;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 999px;
+      background: var(--mint);
+      box-shadow: 0 0 0 6px rgba(116,246,195,.09);
+    }
+
+    .pricing {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+    }
+
+    .price {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      min-height: 430px;
+      padding: 24px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(255,255,255,.045);
+      transition: transform .2s ease, background .2s ease, border-color .2s ease, box-shadow .2s ease;
+    }
+
+    .price.featured {
+      border-color: rgba(116,246,195,.48);
+      background:
+        linear-gradient(180deg, rgba(116,246,195,.09), rgba(255,255,255,.045) 36%),
+        rgba(255,255,255,.045);
+      box-shadow: 0 18px 70px rgba(116,246,195,.13);
+    }
+
+    .badge {
+      width: fit-content;
+      margin-bottom: 12px;
+      padding: 5px 9px;
+      border-radius: 999px;
+      color: var(--ink);
+      background: var(--mint);
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+
+    .price-line {
+      display: flex;
+      align-items: end;
+      gap: 6px;
+      margin-top: 12px;
+    }
+
+    .price-line strong {
+      font-size: 46px;
+      line-height: .95;
+      letter-spacing: 0;
+    }
+
+    .price-line span {
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .checks {
+      display: grid;
+      gap: 11px;
+      margin: 24px 0;
+      padding: 0;
+      list-style: none;
+      color: #dce7e4;
+      font-size: 14px;
+    }
+
+    .checks li {
+      display: flex;
+      gap: 9px;
+    }
+
+    .checks li::before {
+      content: "";
+      width: 16px;
+      height: 16px;
+      margin-top: 2px;
+      flex: 0 0 16px;
+      border-radius: 999px;
+      background:
+        linear-gradient(135deg, var(--mint), var(--mint-2));
+      mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath fill='black' d='M8.1 13.7 4.4 10l1.4-1.4 2.3 2.3 6-6 1.4 1.4z'/%3E%3C/svg%3E") center / 18px 18px no-repeat;
+    }
+
+    .price .button {
+      margin-top: auto;
+    }
+
+    .price.team-small {
+      grid-column: 1 / -1;
+      min-height: 0;
+      display: grid;
+      grid-template-columns: 1fr auto auto;
+      align-items: center;
+      gap: 18px;
+      padding: 18px 20px;
+    }
+
+    .price.team-small p {
+      margin-top: 5px;
+    }
+
+    .price.team-small .price-line {
+      margin-top: 0;
+      min-width: 170px;
+    }
+
+    .price.team-small .price-line strong {
+      font-size: 30px;
+    }
+
+    .faq {
+      width: min(780px, 100%);
+      margin: 0 auto;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(255,255,255,.04);
+      overflow: hidden;
+    }
+
+    details {
+      border-bottom: 1px solid var(--line);
+    }
+
+    details:last-child {
+      border-bottom: 0;
+    }
+
+    summary {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+      padding: 20px;
+      cursor: pointer;
+      font-weight: 750;
+      list-style: none;
+    }
+
+    summary::-webkit-details-marker {
+      display: none;
+    }
+
+    .plus {
+      display: grid;
+      place-items: center;
+      width: 28px;
+      height: 28px;
+      flex: 0 0 28px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      color: var(--muted);
+      transition: transform .2s ease, color .2s ease, border-color .2s ease;
+    }
+
+    details[open] .plus {
+      color: var(--mint);
+      border-color: rgba(116,246,195,.35);
+      transform: rotate(45deg);
+    }
+
+    details p {
+      padding: 0 20px 20px;
+    }
+
+    .cta {
+      padding-bottom: 92px;
+    }
+
+    .cta-panel {
+      position: relative;
+      overflow: hidden;
+      padding: 58px 30px;
+      border: 1px solid rgba(116,246,195,.25);
+      border-radius: 8px;
+      background:
+        radial-gradient(circle at 18% 18%, rgba(116,246,195,.18), transparent 34%),
+        radial-gradient(circle at 84% 24%, rgba(143,182,255,.13), transparent 36%),
+        rgba(255,255,255,.045);
+      text-align: center;
+    }
+
+    .cta-panel h2 {
+      max-width: 760px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .cta-panel p {
+      max-width: 560px;
+      margin: 16px auto 0;
+      color: var(--muted);
+      font-size: 17px;
+    }
+
+    footer {
+      border-top: 1px solid var(--line);
+      padding: 30px 0;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .footer-inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+    }
+
+    .footer-links {
+      display: flex;
+      gap: 18px;
+    }
+
+    .footer-links a {
+      transition: color .18s ease;
+    }
+
+    .footer-links a:hover {
+      color: var(--text);
+    }
+
+    .reveal {
+      opacity: 0;
+      transform: translateY(16px);
+      animation: reveal .75s ease forwards;
+    }
+
+    .delay-1 { animation-delay: .08s; }
+    .delay-2 { animation-delay: .18s; }
+    .delay-3 { animation-delay: .28s; }
+
+    @keyframes reveal {
+      to {
+        opacity: 1;
+        transform: none;
+      }
+    }
+
+    @keyframes floatMac {
+      0%, 100% { transform: rotateX(5deg) rotateY(-6deg) translateY(0); }
+      50% { transform: rotateX(5deg) rotateY(-6deg) translateY(-12px); }
+    }
+
+    @keyframes islandIn {
+      from {
+        opacity: 0;
+        transform: translateX(-50%) translateY(-20px) scale(.96);
+      }
+      to {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0) scale(1);
+      }
+    }
+
+    @keyframes breathe {
+      0%, 100% { opacity: .72; transform: scale(.98); }
+      50% { opacity: 1; transform: scale(1.04); }
+    }
+
+    @keyframes blink {
+      0%, 45% { opacity: 1; }
+      46%, 100% { opacity: 0; }
+    }
+
+    @media (max-width: 980px) {
+      .nav {
+        width: 100%;
+      }
+
+      .nav-links {
+        display: none;
+      }
+
+      .hero {
+        padding-top: 124px;
+      }
+
+      .hero-grid {
+        grid-template-columns: 1fr;
+        gap: 42px;
+      }
+
+      .hero-copy,
+      h1 {
+        max-width: none;
+      }
+
+      .mac-stage {
+        min-height: 500px;
+      }
+
+      .mac {
+        transform: none;
+        animation: none;
+      }
+
+      .workflow,
+      .feature-grid,
+      .pricing,
+      .compare-band {
+        grid-template-columns: 1fr;
+      }
+
+      .price.team-small {
+        grid-template-columns: 1fr;
+      }
+
+      .price.team-small .price-line {
+        min-width: 0;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .container {
+        width: min(100% - 28px, 1160px);
+      }
+
+      .nav {
+        padding-left: 12px;
+      }
+
+      .button {
+        min-height: 40px;
+        padding: 0 14px;
+      }
+
+      .nav-actions .button.secondary {
+        display: none;
+      }
+
+      .hero {
+        padding-top: 112px;
+        padding-bottom: 44px;
+      }
+
+      h1 {
+        font-size: clamp(42px, 14vw, 58px);
+      }
+
+      .hero-copy {
+        font-size: 16px;
+      }
+
+      .hero-actions {
+        display: grid;
+      }
+
+      .mac-stage {
+        min-height: 465px;
+      }
+
+      .screen {
+        min-height: 420px;
+      }
+
+      .document {
+        padding: 24px 18px;
+      }
+
+      .doc-title {
+        font-size: 24px;
+      }
+
+      .simplit-island {
+        top: 72px;
+        align-items: stretch;
+        border-radius: 18px;
+        flex-direction: column;
+        width: calc(100% - 24px);
+      }
+
+      .island-tools {
+        flex-wrap: wrap;
+      }
+
+      .tool-pill {
+        flex: 1;
+        text-align: center;
+      }
+
+      .answer-card {
+        margin-top: 128px;
+      }
+
+      .section {
+        padding: 64px 0;
+      }
+
+      .compare-band {
+        padding: 22px;
+      }
+
+      .footer-inner {
+        flex-direction: column;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="page-shell">
+    <div class="gridwash"></div>
+
+    <header class="nav-wrap">
+      <nav class="nav" aria-label="Main navigation">
+        <a class="brand" href="#">
+          <span class="logo" aria-hidden="true">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none">
+              <path d="M12 3 14 9l6 2-6 2-2 6-2-6-6-2 6-2 2-6Z" fill="currentColor"/>
+            </svg>
+          </span>
+          <span>Simplit</span>
+        </a>
+
+        <div class="nav-links">
+          <a href="#workflow">How it works</a>
+          <a href="#features">Features</a>
+          <a href="#pricing">Pricing</a>
+          <a href="#faq">FAQ</a>
+        </div>
+
+        <div class="nav-actions">
+          <a class="button secondary" href="#account">Sign in</a>
+          <a class="button primary" href="./downloads/Simplit.zip">
+            Download
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M12 3v12m0 0 5-5m-5 5-5-5M5 21h14" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </a>
+        </div>
+      </nav>
+    </header>
+
+    <main>
+      <section class="hero">
+        <div class="container hero-grid">
+          <div>
+            <div class="eyebrow reveal">
+              <span class="ping"></span>
+              Native Mac AI, built for selected text
+            </div>
+
+            <h1 class="gradient-text reveal delay-1">
+              Select text.
+              <span class="accent-text" id="headline-word">Simplit answers.</span><span class="caret"></span>
+            </h1>
+
+            <p class="hero-copy reveal delay-2">
+              Simplit is the slim AI island that sits at the top of your Mac. Highlight a question, paragraph, or worksheet and turn it into a clean answer without switching tabs.
+            </p>
+
+            <div class="hero-actions reveal delay-3">
+              <a class="button primary" href="./downloads/Simplit.zip">
+                Download for Mac
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                  <path d="M5 12h14m-6-6 6 6-6 6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </a>
+              <a class="button secondary" href="#workflow">See how it works</a>
+            </div>
+
+            <div class="microproof reveal delay-3" aria-label="Product highlights">
+              <span>Free plan included</span>
+              <span>Pro image tools</span>
+              <span>Private backend keys</span>
+            </div>
+          </div>
+
+          <div class="mac-stage reveal delay-2" aria-label="Simplit running on a Mac">
+            <div class="mac-light"></div>
+            <div class="mac">
+              <div class="screen">
+                <div class="browser-top">
+                  <div class="traffic" aria-hidden="true"><span></span><span></span><span></span></div>
+                  <div class="urlbar">safari - biology homework</div>
+                </div>
+
+                <div class="document">
+                  <div class="doc-label">Selected text</div>
+                  <h2 class="doc-title">What is photosynthesis?</h2>
+                  <p class="doc-text">
+                    Photosynthesis is a system of biological processes by which organisms convert light energy into chemical energy.
+                    <span class="selection">Explain this in simple words and answer it like a school question.</span>
+                  </p>
+
+                  <div class="answer-card">
+                    <div class="answer-head">
+                      <span>Simplit output</span>
+                      <span>Answer mode</span>
+                    </div>
+                    <p class="answer-body"><span id="typed-answer"></span><span class="caret"></span></p>
+                  </div>
+                </div>
+
+                <div class="simplit-island">
+                  <div class="island-brand">
+                    <span class="logo" aria-hidden="true" style="width:20px;height:20px;border-radius:6px;">
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M12 3 14 9l6 2-6 2-2 6-2-6-6-2 6-2 2-6Z" fill="currentColor"/></svg>
+                    </span>
+                    Simplit
+                  </div>
+                  <div class="island-tools" aria-label="Simplit tools">
+                    <span class="tool-pill active">Answer</span>
+                    <span class="tool-pill">Explain</span>
+                    <span class="tool-pill">Rewrite</span>
+                    <span class="tool-pill">Shorten</span>
+                    <span class="tool-pill">Image</span>
+                  </div>
+                </div>
+              </div>
+              <div class="mac-base"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="workflow" class="section">
+        <div class="container">
+          <div class="section-head">
+            <p class="kicker">Workflow</p>
+            <h2 class="gradient-text">Built for the way you already use your Mac.</h2>
+            <p class="section-copy">The whole product is designed around one fast loop: select, choose, copy.</p>
+          </div>
+
+          <div class="workflow">
+            <article class="step">
+              <span class="number">01</span>
+              <div class="iconbox" aria-hidden="true">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M4 4l7 17 2-7 7-2L4 4Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>
+              </div>
+              <h3>Select anything</h3>
+              <p>Highlight a question, paragraph, email, worksheet, or web page text in the app you are already using.</p>
+            </article>
+
+            <article class="step">
+              <span class="number">02</span>
+              <div class="iconbox" aria-hidden="true">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M12 3 14 9l6 2-6 2-2 6-2-6-6-2 6-2 2-6Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>
+              </div>
+              <h3>Use the island</h3>
+              <p>Simplit opens as a slim bar with answer, explain, rewrite, shorten, and pro image tools.</p>
+            </article>
+
+            <article class="step">
+              <span class="number">03</span>
+              <div class="iconbox" aria-hidden="true">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="m5 12 4 4L19 6" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </div>
+              <h3>Copy the result</h3>
+              <p>Get a clean typed response and paste it back into your work without losing your place.</p>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section id="features" class="section">
+        <div class="container">
+          <div class="section-head">
+            <p class="kicker">Features</p>
+            <h2 class="gradient-text">Small interface. Useful powers.</h2>
+            <p class="section-copy">Free users get the core text tools. Pro unlocks image tools, sneaky mode, and faster premium responses.</p>
+          </div>
+
+          <div class="feature-grid">
+            <article class="feature">
+              <div class="iconbox" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M4 14c4-7 9-7 16-4-4 1-6 3-7 6-2-3-5-3-9-2Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg></div>
+              <h3>Rewrite cleaner</h3>
+              <p>Fix grammar, wording, and flow in seconds while keeping the original meaning.</p>
+            </article>
+
+            <article class="feature">
+              <div class="iconbox" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M9 9a3 3 0 1 1 4 2.8c-1.2.5-1.8 1.2-1.8 2.2M12 19h.01" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg></div>
+              <h3>Answer questions</h3>
+              <p>Works especially well for short questions, multiple choice, and homework-style prompts.</p>
+            </article>
+
+            <article class="feature">
+              <div class="iconbox" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M4 5h9a3 3 0 0 1 3 3v11H7a3 3 0 0 1-3-3V5Z" stroke="currentColor" stroke-width="2"/><path d="M16 7h1a3 3 0 0 1 3 3v9h-4" stroke="currentColor" stroke-width="2"/></svg></div>
+              <h3>Explain clearly</h3>
+              <p>Turn dense paragraphs into simple explanations that are easier to remember.</p>
+            </article>
+
+            <article class="feature">
+              <div class="iconbox" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M5 8h14M5 12h10M5 16h7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></div>
+              <h3>Shorten fast</h3>
+              <p>Cut long emails, notes, and drafts down to the important part.</p>
+            </article>
+
+            <article class="feature">
+              <div class="iconbox" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M4 7h16M7 7c1 6 4 10 10 12M17 7c-1 6-4 10-10 12M12 4v3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></div>
+              <h3>Simplify text</h3>
+              <p>Make hard language easier to read without making the answer feel childish.</p>
+            </article>
+
+            <article class="feature">
+              <div class="iconbox" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M4 8a3 3 0 0 1 3-3h10a3 3 0 0 1 3 3v8a3 3 0 0 1-3 3H7a3 3 0 0 1-3-3V8Z" stroke="currentColor" stroke-width="2"/><path d="m8 15 2.5-3 2 2.2L15.5 11 19 15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+              <h3>Pro image tools</h3>
+              <p>Use screenshot explain and image answer tools when text selection is not enough.</p>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section class="section">
+        <div class="container">
+          <div class="compare-band">
+            <div class="compare-copy">
+              <p class="kicker">Why it converts</p>
+              <h2 class="gradient-text">A clear free path with a real reason to upgrade.</h2>
+              <p class="section-copy">People can try the core text flow for free, then upgrade when they need image tools, sneaky mode, and faster responses.</p>
+            </div>
+            <div class="mini-list">
+              <div class="mini-row"><span class="dot"></span><div><strong>Free</strong><span>Core text tools with daily usage limits.</span></div></div>
+              <div class="mini-row"><span class="dot" style="background:var(--blue);box-shadow:0 0 0 6px rgba(143,182,255,.09);"></span><div><strong>Pro</strong><span>Image tools, sneaky mode, faster model, higher limits.</span></div></div>
+              <div class="mini-row"><span class="dot" style="background:var(--coral);box-shadow:0 0 0 6px rgba(255,157,134,.09);"></span><div><strong>Backend protected</strong><span>API keys stay on the server, not inside the Mac app.</span></div></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="pricing" class="section">
+        <div class="container">
+          <div class="section-head">
+            <p class="kicker">Pricing</p>
+            <h2 class="gradient-text">Tiny price for a tiny app.</h2>
+            <p class="section-copy">Start free. Upgrade when you want faster responses and more power.</p>
+          </div>
+
+          <div class="pricing">
+            <article class="price">
+              <h3>Free</h3>
+              <div class="price-line"><strong>$0</strong><span>/month</span></div>
+              <p>For trying Simplit with slower responses and daily rate limits.</p>
+              <ul class="checks">
+                <li>Limited daily AI actions</li>
+                <li>Slower free model responses</li>
+                <li>Rewrite, answer, explain, shorten</li>
+                <li>macOS 13+</li>
+              </ul>
+              <a class="button secondary" href="./downloads/Simplit.zip">Download free</a>
+            </article>
+
+            <article class="price featured">
+              <div class="badge">Best value</div>
+              <h3>Pro</h3>
+              <div class="price-line"><strong>$6.99</strong><span>/month</span></div>
+              <p>For people who write, study, and answer things all day.</p>
+              <ul class="checks">
+                <li>Unlimited AI actions</li>
+                <li>Up to 20x faster premium responses</li>
+                <li>Image answer and image explain</li>
+                <li>Sneaky mode and notes</li>
+              </ul>
+              <a class="button primary" href="#account">Get Pro</a>
+            </article>
+
+            <article class="price">
+              <h3>Lifetime</h3>
+              <div class="price-line"><strong>$39</strong><span>one time</span></div>
+              <p>For people who want to buy Simplit once and keep it.</p>
+              <ul class="checks">
+                <li>Lifetime Simplit access</li>
+                <li>Pro text tools included</li>
+                <li>Image answer and explain</li>
+                <li>No monthly subscription</li>
+              </ul>
+              <a class="button secondary" href="#account">Buy Lifetime</a>
+            </article>
+
+            <article class="price team-small">
+              <div>
+                <h3>Team</h3>
+                <p>For groups that want shared setup, billing, and support.</p>
+              </div>
+              <div class="price-line"><strong>$5</strong><span>/seat/month</span></div>
+              <a class="button secondary" href="mailto:hello@simplit.app">Contact</a>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section id="account" class="section">
+        <div class="container">
+          <div class="compare-band">
+            <div class="compare-copy">
+              <p class="kicker">Account</p>
+              <h2 class="gradient-text">Sign in inside the Mac app.</h2>
+              <p class="section-copy">Download Simplit, open it, then create an account or sign in there. Your account is checked by the backend, and Pro will unlock after payment once Stripe is connected.</p>
+            </div>
+            <div class="mini-list">
+              <div class="mini-row"><span class="dot"></span><div><strong>New users</strong><span>Download Simplit and choose Create Account in the app.</span></div></div>
+              <div class="mini-row"><span class="dot" style="background:var(--blue);box-shadow:0 0 0 6px rgba(143,182,255,.09);"></span><div><strong>Returning users</strong><span>Open Simplit and sign in with the same email.</span></div></div>
+              <div class="mini-row"><span class="dot" style="background:var(--coral);box-shadow:0 0 0 6px rgba(255,157,134,.09);"></span><div><strong>Payments</strong><span>Pro and Lifetime checkout links are coming next.</span></div></div>
+              <a class="button primary" href="./downloads/Simplit.zip">Download Simplit</a>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="faq" class="section">
+        <div class="container">
+          <div class="section-head">
+            <p class="kicker">FAQ</p>
+            <h2 class="gradient-text">Quick answers.</h2>
+          </div>
+
+          <div class="faq">
+            <details open>
+              <summary>Does Simplit work in other Mac apps?<span class="plus">+</span></summary>
+              <p>Yes. Simplit is designed for Safari, Chrome, Notes, Mail, documents, worksheets, and other normal Mac workflows.</p>
+            </details>
+            <details>
+              <summary>Where do the AI keys go?<span class="plus">+</span></summary>
+              <p>The API keys belong on your backend. The Mac app signs in and sends requests to your server, so users cannot open the app and steal your keys.</p>
+            </details>
+            <details>
+              <summary>What is free vs Pro?<span class="plus">+</span></summary>
+              <p>Free is for core text actions with usage limits. Pro is for image tools, sneaky mode, faster premium responses, and higher limits.</p>
+            </details>
+            <details>
+              <summary>How do I sign in or create an account?<span class="plus">+</span></summary>
+              <p>Download the Mac app and sign in or create an account from Simplit. The website is for downloads, pricing, and payment checkout.</p>
+            </details>
+            <details>
+              <summary>Can people bypass the free limit?<span class="plus">+</span></summary>
+              <p>The proper setup limits usage from the backend by account and device identity. That makes simple account switching much harder to abuse.</p>
+            </details>
+          </div>
+        </div>
+      </section>
+
+      <section class="cta">
+        <div class="container">
+          <div class="cta-panel">
+            <h2 class="gradient-text">The AI assistant that stays where your work is.</h2>
+            <p>Download Simplit, highlight text anywhere, and get the answer without opening a second tab.</p>
+            <div class="hero-actions" style="justify-content:center;">
+              <a class="button primary" href="./downloads/Simplit.zip">Download for Mac</a>
+              <a class="button secondary" href="#pricing">View pricing</a>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <div class="container footer-inner">
+        <a class="brand" href="#">
+          <span class="logo" aria-hidden="true" style="width:24px;height:24px;border-radius:7px;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M12 3 14 9l6 2-6 2-2 6-2-6-6-2 6-2 2-6Z" fill="currentColor"/></svg>
+          </span>
+          <span>Simplit</span>
+          <span style="color:var(--muted);font-weight:500;">© <span id="year"></span></span>
+        </a>
+        <div class="footer-links">
+          <a href="#">Privacy</a>
+          <a href="#">Terms</a>
+          <a href="mailto:hello@simplit.app">Contact</a>
+        </div>
+      </div>
+    </footer>
+  </div>
+
+  <script>
+    const year = document.getElementById("year");
+    if (year) year.textContent = new Date().getFullYear();
+
+    function typewriter(element, words, options = {}) {
+      if (!element || !words.length) return;
+      const speed = options.speed || 54;
+      const erase = options.erase || 28;
+      const pause = options.pause || 1400;
+      let wordIndex = 0;
+      let text = "";
+      let deleting = false;
+
+      function tick() {
+        const word = words[wordIndex % words.length];
+        if (!deleting && text === word) {
+          window.setTimeout(() => {
+            deleting = true;
+            tick();
+          }, pause);
+          return;
+        }
+
+        if (deleting && text === "") {
+          deleting = false;
+          wordIndex += 1;
+          tick();
+          return;
+        }
+
+        text = deleting ? word.slice(0, Math.max(0, text.length - 1)) : word.slice(0, text.length + 1);
+        element.textContent = text;
+        window.setTimeout(tick, deleting ? erase : speed);
+      }
+
+      tick();
+    }
+
+    typewriter(document.getElementById("headline-word"), [
+      "Simplit answers.",
+      "Simplit explains.",
+      "Simplit rewrites.",
+      "Simplit shortens."
+    ]);
+
+    typewriter(document.getElementById("typed-answer"), [
+      "Photosynthesis is how plants use sunlight, water, and carbon dioxide to make food. It also releases oxygen into the air.",
+      "Simple answer: plants use sunlight like energy to turn water and carbon dioxide into sugar, which helps them grow.",
+      "For a worksheet: photosynthesis is the process plants use to make food from sunlight, water, and carbon dioxide."
+    ], { speed: 26, erase: 12, pause: 2300 });
+  </script>
+</body>
+</html>
